@@ -13,9 +13,10 @@
       --accent-work: #ef4444;
       --accent-short: #10b981;
       --accent-long: #3b82f6;
-      --accent-meeting: #a855f7;
-      --accent-email: #10b981;
-      --accent-task: #3b82f6;
+      --accent-meeting: #3b82f6;  /* Blue */
+      --accent-consult: #a855f7;  /* Purple */
+      --accent-email: #10b981;    /* Green */
+      --accent-task: #06b6d4;     /* Teal / Cyan */
       --text: #f8fafc;
       --text-muted: #94a3b8;
       --active-accent: var(--accent-work);
@@ -140,28 +141,50 @@
     .btn:hover { opacity: 0.9; }
 
     /* Compact Buttons */
-    .btn-action-sm {
+    .btn-actions-group {
+      display: flex;
+      gap: 6px;
+    }
+
+    .btn-action-email {
       background: rgba(16, 185, 129, 0.15);
       color: var(--accent-email);
       border: 1px solid rgba(16, 185, 129, 0.4);
-      padding: 6px 12px;
+      padding: 5px 8px;
       border-radius: 6px;
-      font-size: 0.75rem;
+      font-size: 0.7rem;
       font-weight: 600;
       cursor: pointer;
       transition: all 0.2s;
       box-sizing: border-box;
       line-height: 1.2;
-      margin: 0;
     }
-    .btn-action-sm:hover {
+    .btn-action-email:hover {
       background: var(--accent-email);
       color: #000;
     }
 
+    .btn-action-consult {
+      background: rgba(168, 85, 247, 0.15);
+      color: var(--accent-consult);
+      border: 1px solid rgba(168, 85, 247, 0.4);
+      padding: 5px 8px;
+      border-radius: 6px;
+      font-size: 0.7rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      box-sizing: border-box;
+      line-height: 1.2;
+    }
+    .btn-action-consult:hover {
+      background: var(--accent-consult);
+      color: #fff;
+    }
+
     .btn-export-sm {
       background: rgba(59, 130, 246, 0.15);
-      color: var(--accent-task);
+      color: var(--accent-meeting);
       border: 1px solid rgba(59, 130, 246, 0.4);
       padding: 4px 10px;
       border-radius: 6px;
@@ -172,7 +195,7 @@
       box-sizing: border-box;
     }
     .btn-export-sm:hover {
-      background: var(--accent-task);
+      background: var(--accent-meeting);
       color: #fff;
     }
 
@@ -189,28 +212,28 @@
 
     .stats-grid {
       display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 0.5rem;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 0.4rem;
       margin-bottom: 1.25rem;
     }
 
     .stat-card {
       background: rgba(0, 0, 0, 0.2);
-      padding: 0.75rem 0.25rem;
+      padding: 0.75rem 0.2rem;
       border-radius: 12px;
       border: 1px solid #334155;
       text-align: center;
     }
 
     .stat-value {
-      font-size: 1.25rem;
+      font-size: 1.1rem;
       font-weight: 700;
       color: var(--text);
       margin-top: 2px;
     }
 
     .stat-label {
-      font-size: 0.6rem;
+      font-size: 0.55rem;
       font-weight: 600;
       color: var(--text-muted);
       text-transform: uppercase;
@@ -227,7 +250,7 @@
 
     .task-input {
       flex: 1;
-      min-width: 0; /* Prevents flex items from overflowing container width */
+      min-width: 0;
       padding: 8px 12px;
       border-radius: 8px;
       border: 1px solid #334155;
@@ -415,7 +438,7 @@
 <body>
 
   <div class="layout-grid">
-
+    
     <!-- CARD 1: TIMER CONTROLS -->
     <div class="card timer-card timer-panel">
       <div class="app-brand">✨ PulsarPomoFlow</div>
@@ -439,7 +462,10 @@
     <div class="card tasks-card">
       <div class="panel-title">
         <span>Active Tasks</span>
-        <button class="btn-action-sm" onclick="logEmail()">+ Log Email</button>
+        <div class="btn-actions-group">
+          <button class="btn-action-email" onclick="logEmail()">+ Log Email</button>
+          <button class="btn-action-consult" onclick="logConsult()">+ Log Consult</button>
+        </div>
       </div>
 
       <form class="task-form" onsubmit="addTask(event)">
@@ -471,7 +497,11 @@
           <div class="stat-value" id="statMeetingMinutes">0m</div>
         </div>
         <div class="stat-card">
-          <div class="stat-label">Emails Sent</div>
+          <div class="stat-label">Consults</div>
+          <div class="stat-value" id="statConsults">0</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Emails</div>
           <div class="stat-value" id="statEmails">0</div>
         </div>
         <div class="stat-card">
@@ -492,12 +522,13 @@
             <div class="day-label">Fri</div>
           </div>
         </div>
-
+        
         <div class="heatmap-legend">
           <div class="legend-item"><div class="legend-dot" style="background:#ef4444"></div>Focus (5m/tile)</div>
-          <div class="legend-item"><div class="legend-dot" style="background:#a855f7"></div>Meeting (5m/tile)</div>
+          <div class="legend-item"><div class="legend-dot" style="background:#3b82f6"></div>Meeting (5m/tile)</div>
+          <div class="legend-item"><div class="legend-dot" style="background:#a855f7"></div>Consult (1/tile)</div>
           <div class="legend-item"><div class="legend-dot" style="background:#10b981"></div>Email (1/tile)</div>
-          <div class="legend-item"><div class="legend-dot" style="background:#3b82f6"></div>Task Done (1/tile)</div>
+          <div class="legend-item"><div class="legend-dot" style="background:#06b6d4"></div>Task Done (1/tile)</div>
         </div>
       </div>
     </div>
@@ -509,7 +540,7 @@
       work: { type: 'down', time: 25 * 60, color: '#ef4444' },
       short: { type: 'down', time: 5 * 60, color: '#10b981' },
       long: { type: 'down', time: 15 * 60, color: '#3b82f6' },
-      meeting: { type: 'up', time: 0, color: '#a855f7' }
+      meeting: { type: 'up', time: 0, color: '#3b82f6' }
     };
 
     let currentMode = 'work';
@@ -518,15 +549,16 @@
     let isRunning = false;
 
     // Persisted State
-    let stats = JSON.parse(localStorage.getItem('pomo_stats_v5')) || {
+    let stats = JSON.parse(localStorage.getItem('pomo_stats_v6')) || {
       focusSeconds: 0,
       meetingSeconds: 0,
+      consultsLogged: 0,
       emailsSent: 0,
       tasksDone: 0
     };
 
-    let dailyHistory = JSON.parse(localStorage.getItem('pomo_daily_v5')) || {};
-    let tasks = JSON.parse(localStorage.getItem('pomo_tasks_v5')) || [];
+    let dailyHistory = JSON.parse(localStorage.getItem('pomo_daily_v6')) || {};
+    let tasks = JSON.parse(localStorage.getItem('pomo_tasks_v6')) || [];
 
     const timerDisplay = document.getElementById('timer');
     const startBtn = document.getElementById('startBtn');
@@ -539,7 +571,7 @@
     function ensureTodayRecord() {
       const today = getTodayKey();
       if (!dailyHistory[today]) {
-        dailyHistory[today] = { focusSec: 0, meetingSec: 0, emails: 0, tasksDone: 0 };
+        dailyHistory[today] = { focusSec: 0, meetingSec: 0, consults: 0, emails: 0, tasksDone: 0 };
       }
       return dailyHistory[today];
     }
@@ -551,7 +583,7 @@
 
       const today = new Date();
       const currentDayIdx = today.getDay();
-
+      
       const distanceToMon = currentDayIdx === 0 ? 6 : currentDayIdx - 1;
       const mondayDate = new Date(today);
       mondayDate.setDate(today.getDate() - distanceToMon);
@@ -561,11 +593,12 @@
         const dayDate = new Date(mondayDate);
         dayDate.setDate(mondayDate.getDate() + day);
         const dateKey = dayDate.toISOString().split('T')[0];
-        const record = dailyHistory[dateKey] || { focusSec: 0, meetingSec: 0, emails: 0, tasksDone: 0 };
+        const record = dailyHistory[dateKey] || { focusSec: 0, meetingSec: 0, consults: 0, emails: 0, tasksDone: 0 };
 
         dayRecords.push({
           focusTiles: Math.floor((record.focusSec || 0) / 300),
           meetingTiles: Math.floor((record.meetingSec || 0) / 300),
+          consultTiles: record.consults || 0,
           emailTiles: record.emails || 0,
           taskTiles: record.tasksDone || 0
         });
@@ -590,17 +623,22 @@
           } else if (tileIndex < rec.focusTiles + rec.meetingTiles) {
             const mIdx = tileIndex - rec.focusTiles;
             const alpha = Math.min(0.4 + (mIdx * 0.02), 1);
-            tile.style.backgroundColor = `rgba(168, 85, 247, ${alpha})`;
+            tile.style.backgroundColor = `rgba(59, 130, 246, ${alpha})`; // Blue Meeting Tile
             tile.title = `Meeting session (${(mIdx + 1) * 5}m total)`;
-          } else if (tileIndex < rec.focusTiles + rec.meetingTiles + rec.emailTiles) {
-            const eIdx = tileIndex - rec.focusTiles - rec.meetingTiles;
+          } else if (tileIndex < rec.focusTiles + rec.meetingTiles + rec.consultTiles) {
+            const cIdx = tileIndex - rec.focusTiles - rec.meetingTiles;
+            const alpha = Math.min(0.5 + (cIdx * 0.04), 1);
+            tile.style.backgroundColor = `rgba(168, 85, 247, ${alpha})`; // Purple Consult Tile
+            tile.title = `Consult logged (${cIdx + 1} total)`;
+          } else if (tileIndex < rec.focusTiles + rec.meetingTiles + rec.consultTiles + rec.emailTiles) {
+            const eIdx = tileIndex - rec.focusTiles - rec.meetingTiles - rec.consultTiles;
             const alpha = Math.min(0.5 + (eIdx * 0.04), 1);
-            tile.style.backgroundColor = `rgba(16, 185, 129, ${alpha})`;
+            tile.style.backgroundColor = `rgba(16, 185, 129, ${alpha})`; // Green Email Tile
             tile.title = `Email logged (${eIdx + 1} total)`;
-          } else if (tileIndex < rec.focusTiles + rec.meetingTiles + rec.emailTiles + rec.taskTiles) {
-            const tkIdx = tileIndex - rec.focusTiles - rec.meetingTiles - rec.emailTiles;
+          } else if (tileIndex < rec.focusTiles + rec.meetingTiles + rec.consultTiles + rec.emailTiles + rec.taskTiles) {
+            const tkIdx = tileIndex - rec.focusTiles - rec.meetingTiles - rec.consultTiles - rec.emailTiles;
             const alpha = Math.min(0.5 + (tkIdx * 0.04), 1);
-            tile.style.backgroundColor = `rgba(59, 130, 246, ${alpha})`;
+            tile.style.backgroundColor = `rgba(6, 182, 212, ${alpha})`; // Teal Task Tile
             tile.title = `Task completed (${tkIdx + 1} total)`;
           }
 
@@ -610,21 +648,22 @@
     }
 
     function saveState() {
-      localStorage.setItem('pomo_stats_v5', JSON.stringify(stats));
-      localStorage.setItem('pomo_daily_v5', JSON.stringify(dailyHistory));
-      localStorage.setItem('pomo_tasks_v5', JSON.stringify(tasks));
+      localStorage.setItem('pomo_stats_v6', JSON.stringify(stats));
+      localStorage.setItem('pomo_daily_v6', JSON.stringify(dailyHistory));
+      localStorage.setItem('pomo_tasks_v6', JSON.stringify(tasks));
       renderDashboard();
     }
 
     function renderDashboard() {
       document.getElementById('statFocusMinutes').textContent = `${Math.floor(stats.focusSeconds / 60)}m`;
       document.getElementById('statMeetingMinutes').textContent = `${Math.floor(stats.meetingSeconds / 60)}m`;
+      document.getElementById('statConsults').textContent = stats.consultsLogged || 0;
       document.getElementById('statEmails').textContent = stats.emailsSent;
       document.getElementById('statTasks').textContent = stats.tasksDone;
 
       const taskListEl = document.getElementById('taskList');
       taskListEl.innerHTML = '';
-
+      
       tasks.forEach((task, index) => {
         const li = document.createElement('li');
         li.className = `task-item ${task.completed ? 'completed' : ''}`;
@@ -663,6 +702,13 @@
       saveState();
     }
 
+    function logConsult() {
+      stats.consultsLogged = (stats.consultsLogged || 0) + 1;
+      const today = ensureTodayRecord();
+      today.consults = (today.consults || 0) + 1;
+      saveState();
+    }
+
     function escapeHtml(text) {
       return text.replace(/[&<>"']/g, match => ({
         '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;'
@@ -673,7 +719,7 @@
       const mins = Math.floor(timerValue / 60).toString().padStart(2, '0');
       const secs = (timerValue % 60).toString().padStart(2, '0');
       const formatted = `${mins}:${secs}`;
-
+      
       timerDisplay.textContent = formatted;
       document.title = `${formatted} - PulsarPomoFlow`;
     }
@@ -728,7 +774,7 @@
     function setMode(mode) {
       currentMode = mode;
       document.documentElement.style.setProperty('--active-accent', MODES[mode].color);
-
+      
       modeBtns.forEach((btn, index) => {
         const modes = ['work', 'short', 'long', 'meeting'];
         btn.classList.toggle('active', modes[index] === mode);
@@ -750,7 +796,7 @@
     function toggleTask(index) {
       const wasCompleted = tasks[index].completed;
       tasks[index].completed = !tasks[index].completed;
-
+      
       const today = ensureTodayRecord();
 
       if (!wasCompleted && tasks[index].completed) {
@@ -771,7 +817,7 @@
 
     function resetStats() {
       if (confirm('Are you sure you want to clear your metrics and grid data?')) {
-        stats = { focusSeconds: 0, meetingSeconds: 0, emailsSent: 0, tasksDone: 0 };
+        stats = { focusSeconds: 0, meetingSeconds: 0, consultsLogged: 0, emailsSent: 0, tasksDone: 0 };
         dailyHistory = {};
         saveState();
         location.reload();
