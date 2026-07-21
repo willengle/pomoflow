@@ -1,0 +1,786 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PulsarPomoFlow | Work Activity Dashboard</title>
+  <!-- html2canvas for Exporting Matrix Image -->
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card-bg: #1e293b;
+      --accent-work: #ef4444;
+      --accent-short: #10b981;
+      --accent-long: #3b82f6;
+      --accent-meeting: #a855f7;
+      --accent-email: #10b981;
+      --accent-task: #3b82f6;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --active-accent: var(--accent-work);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 2rem 1rem;
+    }
+
+    /* 3-Panel Layout Grid */
+    .layout-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1.5rem;
+      width: 100%;
+      max-width: 1080px;
+    }
+
+    @media (min-width: 900px) {
+      .layout-grid {
+        grid-template-columns: 320px 1fr;
+        grid-template-rows: auto auto;
+      }
+
+      .timer-card { grid-column: 1; grid-row: 1; }
+      .tasks-card { grid-column: 1; grid-row: 2; }
+      .matrix-card { grid-column: 2; grid-row: 1 / span 2; }
+    }
+
+    .card {
+      background-color: var(--card-bg);
+      border-radius: 20px;
+      padding: 1.75rem;
+      box-shadow: 0 10px 25px -5px rgba(0,0,0,0.4);
+    }
+
+    .app-brand {
+      font-size: 1.2rem;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      margin-bottom: 1.25rem;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    /* --- SECTION 1: TIMER PANEL --- */
+    .timer-panel {
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+    }
+
+    .mode-group {
+      display: flex;
+      background: rgba(0,0,0,0.25);
+      padding: 4px;
+      border-radius: 12px;
+      margin-bottom: 1.25rem;
+    }
+
+    .mode-btn {
+      flex: 1;
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      padding: 8px 4px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .mode-btn.active {
+      background: var(--active-accent);
+      color: #fff;
+    }
+
+    .timer-display {
+      font-size: 4.8rem;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+      margin: 0.25rem 0 1.25rem;
+      letter-spacing: -2px;
+    }
+
+    .controls {
+      display: flex;
+      gap: 0.75rem;
+    }
+
+    .btn {
+      flex: 1;
+      padding: 12px;
+      border: none;
+      border-radius: 10px;
+      font-size: 0.95rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+
+    .btn-main { background-color: var(--active-accent); color: white; }
+    .btn-secondary { background-color: #334155; color: var(--text); }
+    .btn:hover { opacity: 0.9; }
+
+    /* Compact Buttons */
+    .btn-action-sm {
+      background: rgba(16, 185, 129, 0.15);
+      color: var(--accent-email);
+      border: 1px solid rgba(16, 185, 129, 0.4);
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      box-sizing: border-box;
+      line-height: 1.2;
+      margin: 0;
+    }
+    .btn-action-sm:hover {
+      background: var(--accent-email);
+      color: #000;
+    }
+
+    .btn-export-sm {
+      background: rgba(59, 130, 246, 0.15);
+      color: var(--accent-task);
+      border: 1px solid rgba(59, 130, 246, 0.4);
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      box-sizing: border-box;
+    }
+    .btn-export-sm:hover {
+      background: var(--accent-task);
+      color: #fff;
+    }
+
+    /* --- COMMON HEADERS & STATS --- */
+    .panel-title {
+      font-size: 0.95rem;
+      font-weight: 700;
+      margin-bottom: 0.75rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      width: 100%;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 0.5rem;
+      margin-bottom: 1.25rem;
+    }
+
+    .stat-card {
+      background: rgba(0, 0, 0, 0.2);
+      padding: 0.75rem 0.25rem;
+      border-radius: 12px;
+      border: 1px solid #334155;
+      text-align: center;
+    }
+
+    .stat-value {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--text);
+      margin-top: 2px;
+    }
+
+    .stat-label {
+      font-size: 0.6rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    /* --- SECTION 2: TASK TRACKER SECTION --- */
+    .task-form {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 0.75rem;
+      width: 100%;
+    }
+
+    .task-input {
+      flex: 1;
+      min-width: 0; /* Prevents flex items from overflowing container width */
+      padding: 8px 12px;
+      border-radius: 8px;
+      border: 1px solid #334155;
+      background: rgba(0, 0, 0, 0.2);
+      color: var(--text);
+      font-size: 0.85rem;
+      outline: none;
+      box-sizing: border-box;
+    }
+
+    .task-input:focus { border-color: var(--active-accent); }
+
+    .btn-add {
+      background: #334155;
+      color: white;
+      border: 1px solid #334155;
+      padding: 6px 16px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background-color 0.2s, border-color 0.2s;
+      box-sizing: border-box;
+      line-height: 1.2;
+      margin: 0;
+      flex-shrink: 0;
+    }
+
+    .btn-add:hover {
+      background: #475569;
+      border-color: #475569;
+    }
+
+    .task-list {
+      list-style: none;
+      max-height: 220px;
+      overflow-y: auto;
+      width: 100%;
+    }
+
+    .task-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 6px 10px;
+      background: rgba(0, 0, 0, 0.15);
+      border-radius: 8px;
+      margin-bottom: 6px;
+      font-size: 0.85rem;
+    }
+
+    .task-content {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex: 1;
+      min-width: 0;
+    }
+
+    .task-content span {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .task-item.completed span {
+      text-decoration: line-through;
+      color: var(--text-muted);
+    }
+
+    .task-checkbox {
+      width: 15px;
+      height: 15px;
+      accent-color: var(--accent-short);
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+
+    .btn-delete {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      font-size: 1.1rem;
+      cursor: pointer;
+      line-height: 1;
+      padding: 0 4px;
+      transition: color 0.15s;
+      flex-shrink: 0;
+    }
+
+    .btn-delete:hover { color: var(--accent-work); }
+
+    .btn-clear {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      font-size: 0.75rem;
+      cursor: pointer;
+      text-decoration: underline;
+    }
+
+    /* --- SECTION 3: FULL-WIDTH MATRIX CONTAINER --- */
+    .matrix-wrapper {
+      background: rgba(0, 0, 0, 0.25);
+      border-radius: 12px;
+      padding: 1.25rem 1rem 0.85rem;
+      border: 1px solid #334155;
+      margin-bottom: 1.25rem;
+      width: 100%;
+    }
+
+    .matrix-board {
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+      gap: 10px;
+    }
+
+    .matrix-tiles-grid {
+      display: grid;
+      grid-template-columns: repeat(25, minmax(0, 1fr));
+      grid-template-rows: repeat(10, 1fr);
+      gap: 3px;
+      background: rgba(0,0,0,0.3);
+      padding: 6px;
+      border-radius: 8px;
+      border: 1px solid rgba(255,255,255,0.03);
+      width: 100%;
+    }
+
+    .tile {
+      width: 100%;
+      aspect-ratio: 1;
+      border-radius: 2px;
+      background-color: #1e293b;
+      border: 1px solid rgba(255,255,255,0.02);
+      transition: transform 0.15s ease, border-color 0.15s ease;
+      cursor: pointer;
+    }
+
+    .tile:hover {
+      transform: scale(1.4);
+      z-index: 10;
+      border-color: #f8fafc;
+    }
+
+    .day-labels-row {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      width: 100%;
+      text-align: center;
+    }
+
+    .day-label {
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+    }
+
+    .heatmap-legend {
+      display: flex;
+      gap: 12px;
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      margin-top: 8px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .legend-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 2px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="layout-grid">
+
+    <!-- CARD 1: TIMER CONTROLS -->
+    <div class="card timer-card timer-panel">
+      <div class="app-brand">✨ PulsarPomoFlow</div>
+
+      <div class="mode-group">
+        <button class="mode-btn active" onclick="setMode('work')">Focus</button>
+        <button class="mode-btn" onclick="setMode('short')">Short</button>
+        <button class="mode-btn" onclick="setMode('long')">Long</button>
+        <button class="mode-btn" onclick="setMode('meeting')">Meeting</button>
+      </div>
+
+      <div class="timer-display" id="timer">25:00</div>
+
+      <div class="controls">
+        <button class="btn btn-main" id="startBtn" onclick="toggleTimer()">Start</button>
+        <button class="btn btn-secondary" onclick="resetTimer()">Reset</button>
+      </div>
+    </div>
+
+    <!-- CARD 2: DEDICATED TASK SECTION -->
+    <div class="card tasks-card">
+      <div class="panel-title">
+        <span>Active Tasks</span>
+        <button class="btn-action-sm" onclick="logEmail()">+ Log Email</button>
+      </div>
+
+      <form class="task-form" onsubmit="addTask(event)">
+        <input type="text" id="taskInput" class="task-input" placeholder="Add a project task..." required>
+        <button type="submit" class="btn-add">Add</button>
+      </form>
+
+      <ul class="task-list" id="taskList"></ul>
+    </div>
+
+    <!-- CARD 3: ANALYTICS & FULL-WIDTH MATRIX -->
+    <div class="card matrix-card">
+      <div class="panel-title">
+        <span>Work Week Activity Matrix</span>
+        <div>
+          <button class="btn-export-sm" onclick="exportMatrixImage()">📸 Export PNG</button>
+          <button class="btn-clear" onclick="resetStats()" style="margin-left: 8px;">Reset Data</button>
+        </div>
+      </div>
+
+      <!-- Quick Metrics -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-label">Focus Time</div>
+          <div class="stat-value" id="statFocusMinutes">0m</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Meeting Time</div>
+          <div class="stat-value" id="statMeetingMinutes">0m</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Emails Sent</div>
+          <div class="stat-value" id="statEmails">0</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Tasks Done</div>
+          <div class="stat-value" id="statTasks">0</div>
+        </div>
+      </div>
+
+      <!-- Contiguous 25-Column x 10-Row Matrix -->
+      <div class="matrix-wrapper" id="exportTarget">
+        <div class="matrix-board">
+          <div class="matrix-tiles-grid" id="matrixTilesGrid"></div>
+          <div class="day-labels-row">
+            <div class="day-label">Mon</div>
+            <div class="day-label">Tue</div>
+            <div class="day-label">Wed</div>
+            <div class="day-label">Thu</div>
+            <div class="day-label">Fri</div>
+          </div>
+        </div>
+
+        <div class="heatmap-legend">
+          <div class="legend-item"><div class="legend-dot" style="background:#ef4444"></div>Focus (5m/tile)</div>
+          <div class="legend-item"><div class="legend-dot" style="background:#a855f7"></div>Meeting (5m/tile)</div>
+          <div class="legend-item"><div class="legend-dot" style="background:#10b981"></div>Email (1/tile)</div>
+          <div class="legend-item"><div class="legend-dot" style="background:#3b82f6"></div>Task Done (1/tile)</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    const MODES = {
+      work: { type: 'down', time: 25 * 60, color: '#ef4444' },
+      short: { type: 'down', time: 5 * 60, color: '#10b981' },
+      long: { type: 'down', time: 15 * 60, color: '#3b82f6' },
+      meeting: { type: 'up', time: 0, color: '#a855f7' }
+    };
+
+    let currentMode = 'work';
+    let timerValue = MODES[currentMode].time;
+    let timerInterval = null;
+    let isRunning = false;
+
+    // Persisted State
+    let stats = JSON.parse(localStorage.getItem('pomo_stats_v5')) || {
+      focusSeconds: 0,
+      meetingSeconds: 0,
+      emailsSent: 0,
+      tasksDone: 0
+    };
+
+    let dailyHistory = JSON.parse(localStorage.getItem('pomo_daily_v5')) || {};
+    let tasks = JSON.parse(localStorage.getItem('pomo_tasks_v5')) || [];
+
+    const timerDisplay = document.getElementById('timer');
+    const startBtn = document.getElementById('startBtn');
+    const modeBtns = document.querySelectorAll('.mode-btn');
+
+    function getTodayKey() {
+      return new Date().toISOString().split('T')[0];
+    }
+
+    function ensureTodayRecord() {
+      const today = getTodayKey();
+      if (!dailyHistory[today]) {
+        dailyHistory[today] = { focusSec: 0, meetingSec: 0, emails: 0, tasksDone: 0 };
+      }
+      return dailyHistory[today];
+    }
+
+    /* Renders a full-width contiguous 25-col x 10-row matrix */
+    function renderMatrix() {
+      const grid = document.getElementById('matrixTilesGrid');
+      grid.innerHTML = '';
+
+      const today = new Date();
+      const currentDayIdx = today.getDay();
+
+      const distanceToMon = currentDayIdx === 0 ? 6 : currentDayIdx - 1;
+      const mondayDate = new Date(today);
+      mondayDate.setDate(today.getDate() - distanceToMon);
+
+      const dayRecords = [];
+      for (let day = 0; day < 5; day++) {
+        const dayDate = new Date(mondayDate);
+        dayDate.setDate(mondayDate.getDate() + day);
+        const dateKey = dayDate.toISOString().split('T')[0];
+        const record = dailyHistory[dateKey] || { focusSec: 0, meetingSec: 0, emails: 0, tasksDone: 0 };
+
+        dayRecords.push({
+          focusTiles: Math.floor((record.focusSec || 0) / 300),
+          meetingTiles: Math.floor((record.meetingSec || 0) / 300),
+          emailTiles: record.emails || 0,
+          taskTiles: record.tasksDone || 0
+        });
+      }
+
+      for (let r = 0; r < 10; r++) {
+        const visualRowFromBottom = 9 - r;
+
+        for (let c = 0; c < 25; c++) {
+          const dayIndex = Math.floor(c / 5);
+          const colWithinDay = c % 5;
+          const tileIndex = visualRowFromBottom * 5 + colWithinDay;
+
+          const rec = dayRecords[dayIndex];
+          const tile = document.createElement('div');
+          tile.className = 'tile';
+
+          if (tileIndex < rec.focusTiles) {
+            const alpha = Math.min(0.4 + (tileIndex * 0.02), 1);
+            tile.style.backgroundColor = `rgba(239, 68, 68, ${alpha})`;
+            tile.title = `Focus session (${(tileIndex + 1) * 5}m total)`;
+          } else if (tileIndex < rec.focusTiles + rec.meetingTiles) {
+            const mIdx = tileIndex - rec.focusTiles;
+            const alpha = Math.min(0.4 + (mIdx * 0.02), 1);
+            tile.style.backgroundColor = `rgba(168, 85, 247, ${alpha})`;
+            tile.title = `Meeting session (${(mIdx + 1) * 5}m total)`;
+          } else if (tileIndex < rec.focusTiles + rec.meetingTiles + rec.emailTiles) {
+            const eIdx = tileIndex - rec.focusTiles - rec.meetingTiles;
+            const alpha = Math.min(0.5 + (eIdx * 0.04), 1);
+            tile.style.backgroundColor = `rgba(16, 185, 129, ${alpha})`;
+            tile.title = `Email logged (${eIdx + 1} total)`;
+          } else if (tileIndex < rec.focusTiles + rec.meetingTiles + rec.emailTiles + rec.taskTiles) {
+            const tkIdx = tileIndex - rec.focusTiles - rec.meetingTiles - rec.emailTiles;
+            const alpha = Math.min(0.5 + (tkIdx * 0.04), 1);
+            tile.style.backgroundColor = `rgba(59, 130, 246, ${alpha})`;
+            tile.title = `Task completed (${tkIdx + 1} total)`;
+          }
+
+          grid.appendChild(tile);
+        }
+      }
+    }
+
+    function saveState() {
+      localStorage.setItem('pomo_stats_v5', JSON.stringify(stats));
+      localStorage.setItem('pomo_daily_v5', JSON.stringify(dailyHistory));
+      localStorage.setItem('pomo_tasks_v5', JSON.stringify(tasks));
+      renderDashboard();
+    }
+
+    function renderDashboard() {
+      document.getElementById('statFocusMinutes').textContent = `${Math.floor(stats.focusSeconds / 60)}m`;
+      document.getElementById('statMeetingMinutes').textContent = `${Math.floor(stats.meetingSeconds / 60)}m`;
+      document.getElementById('statEmails').textContent = stats.emailsSent;
+      document.getElementById('statTasks').textContent = stats.tasksDone;
+
+      const taskListEl = document.getElementById('taskList');
+      taskListEl.innerHTML = '';
+
+      tasks.forEach((task, index) => {
+        const li = document.createElement('li');
+        li.className = `task-item ${task.completed ? 'completed' : ''}`;
+        li.innerHTML = `
+          <div class="task-content">
+            <input type="checkbox" class="task-checkbox" ${task.completed ? 'checked' : ''} onchange="toggleTask(${index})">
+            <span>${escapeHtml(task.text)}</span>
+          </div>
+          <button class="btn-delete" onclick="removeTask(${index})" title="Delete Task">&times;</button>
+        `;
+        taskListEl.appendChild(li);
+      });
+
+      renderMatrix();
+    }
+
+    function exportMatrixImage() {
+      const exportTarget = document.getElementById('exportTarget');
+      const dateStamp = getTodayKey();
+
+      html2canvas(exportTarget, {
+        backgroundColor: '#1e293b',
+        scale: 2
+      }).then(canvas => {
+        const link = document.createElement('a');
+        link.download = `pulsarpomoflow-matrix_${dateStamp}.png`;
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+      });
+    }
+
+    function logEmail() {
+      stats.emailsSent++;
+      const today = ensureTodayRecord();
+      today.emails = (today.emails || 0) + 1;
+      saveState();
+    }
+
+    function escapeHtml(text) {
+      return text.replace(/[&<>"']/g, match => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;'
+      })[match]);
+    }
+
+    function updateDisplay() {
+      const mins = Math.floor(timerValue / 60).toString().padStart(2, '0');
+      const secs = (timerValue % 60).toString().padStart(2, '0');
+      const formatted = `${mins}:${secs}`;
+
+      timerDisplay.textContent = formatted;
+      document.title = `${formatted} - PulsarPomoFlow`;
+    }
+
+    function toggleTimer() {
+      if (isRunning) {
+        clearInterval(timerInterval);
+        startBtn.textContent = 'Start';
+        isRunning = false;
+      } else {
+        isRunning = true;
+        startBtn.textContent = 'Pause';
+
+        timerInterval = setInterval(() => {
+          const modeConfig = MODES[currentMode];
+          const today = ensureTodayRecord();
+
+          if (modeConfig.type === 'down') {
+            if (timerValue > 0) {
+              timerValue--;
+              if (currentMode === 'work') {
+                stats.focusSeconds++;
+                today.focusSec = (today.focusSec || 0) + 1;
+              }
+              updateDisplay();
+              saveState();
+            } else {
+              clearInterval(timerInterval);
+              isRunning = false;
+              startBtn.textContent = 'Start';
+              setMode('short');
+            }
+          } else {
+            timerValue++;
+            stats.meetingSeconds++;
+            today.meetingSec = (today.meetingSec || 0) + 1;
+            updateDisplay();
+            saveState();
+          }
+        }, 1000);
+      }
+    }
+
+    function resetTimer() {
+      clearInterval(timerInterval);
+      isRunning = false;
+      startBtn.textContent = 'Start';
+      timerValue = MODES[currentMode].time;
+      updateDisplay();
+    }
+
+    function setMode(mode) {
+      currentMode = mode;
+      document.documentElement.style.setProperty('--active-accent', MODES[mode].color);
+
+      modeBtns.forEach((btn, index) => {
+        const modes = ['work', 'short', 'long', 'meeting'];
+        btn.classList.toggle('active', modes[index] === mode);
+      });
+
+      resetTimer();
+    }
+
+    function addTask(e) {
+      e.preventDefault();
+      const input = document.getElementById('taskInput');
+      if (!input.value.trim()) return;
+
+      tasks.push({ text: input.value.trim(), completed: false });
+      input.value = '';
+      saveState();
+    }
+
+    function toggleTask(index) {
+      const wasCompleted = tasks[index].completed;
+      tasks[index].completed = !tasks[index].completed;
+
+      const today = ensureTodayRecord();
+
+      if (!wasCompleted && tasks[index].completed) {
+        today.tasksDone = (today.tasksDone || 0) + 1;
+      } else if (wasCompleted && !tasks[index].completed) {
+        today.tasksDone = Math.max(0, (today.tasksDone || 0) - 1);
+      }
+
+      stats.tasksDone = tasks.filter(t => t.completed).length;
+      saveState();
+    }
+
+    function removeTask(index) {
+      tasks.splice(index, 1);
+      stats.tasksDone = tasks.filter(t => t.completed).length;
+      saveState();
+    }
+
+    function resetStats() {
+      if (confirm('Are you sure you want to clear your metrics and grid data?')) {
+        stats = { focusSeconds: 0, meetingSeconds: 0, emailsSent: 0, tasksDone: 0 };
+        dailyHistory = {};
+        saveState();
+        location.reload();
+      }
+    }
+
+    // Initialize
+    updateDisplay();
+    renderDashboard();
+  </script>
+</body>
+</html>
