@@ -370,10 +370,11 @@
       gap: 10px;
     }
 
+    /* Updated to 15 rows high */
     .matrix-tiles-grid {
       display: grid;
       grid-template-columns: repeat(25, minmax(0, 1fr));
-      grid-template-rows: repeat(10, 1fr);
+      grid-template-rows: repeat(15, 1fr);
       gap: 3px;
       background: rgba(0,0,0,0.3);
       padding: 6px;
@@ -438,7 +439,7 @@
 <body>
 
   <div class="layout-grid">
-    
+
     <!-- CARD 1: TIMER CONTROLS -->
     <div class="card timer-card timer-panel">
       <div class="app-brand">✨ PomoFlow</div>
@@ -510,7 +511,7 @@
         </div>
       </div>
 
-      <!-- Contiguous 25-Column x 10-Row Matrix -->
+      <!-- Contiguous 25-Column x 15-Row Matrix -->
       <div class="matrix-wrapper" id="exportTarget">
         <div class="matrix-board">
           <div class="matrix-tiles-grid" id="matrixTilesGrid"></div>
@@ -522,7 +523,7 @@
             <div class="day-label">Fri</div>
           </div>
         </div>
-        
+
         <div class="heatmap-legend">
           <div class="legend-item"><div class="legend-dot" style="background:#ef4444"></div>Focus (5m/tile)</div>
           <div class="legend-item"><div class="legend-dot" style="background:#3b82f6"></div>Meeting (5m/tile)</div>
@@ -576,14 +577,14 @@
       return dailyHistory[today];
     }
 
-    /* Renders a full-width contiguous 25-col x 10-row matrix */
+    /* Renders a full-width contiguous 25-col x 15-row matrix */
     function renderMatrix() {
       const grid = document.getElementById('matrixTilesGrid');
       grid.innerHTML = '';
 
       const today = new Date();
       const currentDayIdx = today.getDay();
-      
+
       const distanceToMon = currentDayIdx === 0 ? 6 : currentDayIdx - 1;
       const mondayDate = new Date(today);
       mondayDate.setDate(today.getDate() - distanceToMon);
@@ -604,8 +605,8 @@
         });
       }
 
-      for (let r = 0; r < 10; r++) {
-        const visualRowFromBottom = 9 - r;
+      for (let r = 0; r < 15; r++) {
+        const visualRowFromBottom = 14 - r;
 
         for (let c = 0; c < 25; c++) {
           const dayIndex = Math.floor(c / 5);
@@ -663,7 +664,7 @@
 
       const taskListEl = document.getElementById('taskList');
       taskListEl.innerHTML = '';
-      
+
       tasks.forEach((task, index) => {
         const li = document.createElement('li');
         li.className = `task-item ${task.completed ? 'completed' : ''}`;
@@ -719,7 +720,7 @@
       const mins = Math.floor(timerValue / 60).toString().padStart(2, '0');
       const secs = (timerValue % 60).toString().padStart(2, '0');
       const formatted = `${mins}:${secs}`;
-      
+
       timerDisplay.textContent = formatted;
       document.title = `${formatted} - PomoFlow`;
     }
@@ -774,7 +775,7 @@
     function setMode(mode) {
       currentMode = mode;
       document.documentElement.style.setProperty('--active-accent', MODES[mode].color);
-      
+
       modeBtns.forEach((btn, index) => {
         const modes = ['work', 'short', 'long', 'meeting'];
         btn.classList.toggle('active', modes[index] === mode);
@@ -796,22 +797,25 @@
     function toggleTask(index) {
       const wasCompleted = tasks[index].completed;
       tasks[index].completed = !tasks[index].completed;
-      
+
       const today = ensureTodayRecord();
 
       if (!wasCompleted && tasks[index].completed) {
+        // Increment global & daily stats when completed
+        stats.tasksDone = (stats.tasksDone || 0) + 1;
         today.tasksDone = (today.tasksDone || 0) + 1;
       } else if (wasCompleted && !tasks[index].completed) {
+        // Decrement only if unchecked explicitly
+        stats.tasksDone = Math.max(0, (stats.tasksDone || 0) - 1);
         today.tasksDone = Math.max(0, (today.tasksDone || 0) - 1);
       }
 
-      stats.tasksDone = tasks.filter(t => t.completed).length;
       saveState();
     }
 
     function removeTask(index) {
+      // Removing a task no longer recalculates or decrements completed stats
       tasks.splice(index, 1);
-      stats.tasksDone = tasks.filter(t => t.completed).length;
       saveState();
     }
 
