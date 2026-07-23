@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>PomoFlow | Will's Attention Distribution Matrix</title>
+  <title>PomoFlow | Attention Distribution Dashboard</title>
   <!-- html2canvas for Exporting Matrix Image -->
   <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
   <style>
@@ -689,7 +689,7 @@
         scale: 2
       }).then(canvas => {
         const link = document.createElement('a');
-        link.download = `pulsarpomoflow-matrix_${dateStamp}.png`;
+        link.download = `pomoflow-matrix_${dateStamp}.png`;
         link.href = canvas.toDataURL('image/png');
         link.click();
       });
@@ -721,7 +721,7 @@
       const formatted = `${mins}:${secs}`;
       
       timerDisplay.textContent = formatted;
-      document.title = `${formatted} - PulsarPomoFlow`;
+      document.title = `${formatted} - PomoFlow`;
     }
 
     function toggleTimer() {
